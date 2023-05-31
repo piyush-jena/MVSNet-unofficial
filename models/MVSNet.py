@@ -1,3 +1,5 @@
+import gc
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -80,19 +82,17 @@ class MVSNet(nn.Module):
         # step 2. differentiable homograph, build cost volume
         ref_volume = ref_feature.unsqueeze(2).repeat(1, 1, num_depth, 1, 1)
         volume_sum = ref_volume
-        volume_sq_sum = ref_volume ** 2
+        volume_sq_sum = ref_volume.pow_(2)
+
         del ref_volume
+        
         for src_fea, src_proj in zip(src_features, src_projs):
             # warpped features
             warped_volume = homo_warping(src_fea, src_proj, ref_proj, depth_values)
-            if self.training:
-                volume_sum = volume_sum + warped_volume
-                volume_sq_sum = volume_sq_sum + warped_volume ** 2
-            else:
-                # TODO: this is only a temporal solution to save memory, better way?
-                volume_sum += warped_volume
-                volume_sq_sum += warped_volume.pow_(2)  # the memory of warped_volume has been modified
+            volume_sum += warped_volume
+            volume_sq_sum += warped_volume.pow_(2)
             del warped_volume
+
         # aggregate multiple feature volumes by variance
         volume_variance = volume_sq_sum.div_(num_views).sub_(volume_sum.div_(num_views).pow_(2))
 
@@ -113,7 +113,7 @@ class MVSNet(nn.Module):
         if not self.refine:
             return {"depth": depth, "photometric_confidence": photometric_confidence}
         else:
-            refined_depth = self.refine_network(torch.cat((imgs[0], depth), 1))
+            refined_depth = self.dep_map_refine(torch.cat((imgs[0], depth), 1))
             return {"depth": depth, "refined_depth": refined_depth, "photometric_confidence": photometric_confidence}
 
 

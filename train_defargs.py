@@ -15,7 +15,7 @@ cudnn.benchmark = True
 
 mode = "train"
 loadckpt = None
-resume = False
+resume = True
 batch_size = 4
 interval_scale = 1.06
 lr = 0.001
@@ -26,7 +26,7 @@ trainpath = "../../Datasets/dtu_training/mvs_training/dtu/"
 testpath = None
 trainlist = "lists/dtu/train.txt"
 testlist = "lists/dtu/test.txt"
-numdepth = 32
+numdepth = 64
 logdir = "./checkpoints/d52623"
 seed = 1
 weight_decay = 0.0
@@ -61,8 +61,8 @@ testImgLoader = DataLoader(testDataset, batch_size, shuffle=False, num_workers=1
 
 # model, optimizer
 model = MVSNet(refine=False)
-model.cuda()
-model_loss = mvsnet_loss
+model.to(torch.device('cuda:0'))
+criterion = mvsnet_loss
 optimizer = optim.Adam(model.parameters(), lr=lr, betas=(0.9, 0.999), weight_decay=weight_decay)
 
 # load parameters
@@ -117,11 +117,7 @@ def train():
 
         # checkpoint
         if (epoch_idx + 1) % save_freq == 0:
-            torch.save({
-                'epoch': epoch_idx,
-                'model': model.state_dict(),
-                'optimizer': optimizer.state_dict()},
-                "{}/model_{:0>6}.ckpt".format(logdir, epoch_idx))
+            save_checkpoint(model, optimizer, epoch_idx, logdir)
 
         # testing
         avg_test_scalars = DictAverageMeter()
@@ -165,7 +161,7 @@ def train_sample(sample, detailed_summary=False):
     outputs = model(sample_cuda["imgs"], sample_cuda["proj_matrices"], sample_cuda["depth_values"])
     depth_est = outputs["depth"]
 
-    loss = model_loss(depth_est, depth_gt, mask)
+    loss = criterion(depth_est, depth_gt, mask)
     loss.backward()
     optimizer.step()
 
@@ -194,7 +190,7 @@ def test_sample(sample, detailed_summary=True):
     outputs = model(sample_cuda["imgs"], sample_cuda["proj_matrices"], sample_cuda["depth_values"])
     depth_est = outputs["depth"]
 
-    loss = model_loss(depth_est, depth_gt, mask)
+    loss = criterion(depth_est, depth_gt, mask)
 
     scalar_outputs = {"loss": loss}
     image_outputs = {"depth_est": depth_est * mask, "depth_gt": sample["depth"],

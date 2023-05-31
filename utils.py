@@ -173,7 +173,16 @@ def tensor2numpy(vars):
 @make_recursive_func
 def tocuda(vars):
     if isinstance(vars, torch.Tensor):
-        return vars.cuda()
+        return vars.to(torch.device('cuda:0'))
+    elif isinstance(vars, str):
+        return vars
+    else:
+        raise NotImplementedError("invalid input type {} for tensor2numpy".format(type(vars)))
+    
+@make_recursive_func
+def tocpu(vars):
+    if isinstance(vars, torch.Tensor):
+        return vars.detach().cpu()
     elif isinstance(vars, str):
         return vars
     else:
@@ -322,6 +331,46 @@ def Thres_metrics(depth_est, depth_gt, mask, thres):
 def AbsDepthError_metrics(depth_est, depth_gt, mask):
     depth_est, depth_gt = depth_est[mask], depth_gt[mask]
     return torch.mean((depth_est - depth_gt).abs())
+
+def save_checkpoint(model, optimizer, epoch, logdir):
+    '''
+        This function creates a dictionary of state variables and pickles them to save a checkpoint
+    '''
+    print('Saving...')
+
+    ''' Create a dictionary to save some parameters related to the state of the model, this allows us to resume training'''
+    state = {
+        'epoch': epoch,
+        'model': model.state_dict(),
+        'optimizer': optimizer.state_dict(),
+    }
+
+    ''' Create a directory to save the checkpoints'''
+
+    if not os.path.isdir('checkpoint'):
+        os.mkdir('checkpoint')
+    torch.save(state, "{}/model_{:0>6}.ckpt".format(logdir, epoch))
+
+
+def load_checkpoint(model, optimizer, logdir, modelpath = None):
+    '''
+        This function loads a checkpoint
+    '''
+    print('Loading...')
+    if modelpath == None:
+        saved_models = [fn for fn in os.listdir(logdir) if fn.endswith(".ckpt")]
+        if len(saved_models) == 0:
+            return model, optimizer, 0
+        saved_models = sorted(saved_models, key=lambda x: int(x.split('_')[-1].split('.')[0]))
+        modelpath = os.path.join(logdir, saved_models[-1])
+
+    checkpoint = torch.load(modelpath)
+
+    model.load_state_dict(checkpoint['model'])
+    optimizer.load_state_dict(checkpoint['optimizer'])
+    start_epoch = checkpoint['epoch'] + 1
+    print('Training resuming from epoch {}'.format(start_epoch))
+    return model, optimizer, start_epoch
 
 if __name__ == "__main__":
     # some testing code, just IGNORE it
