@@ -2,6 +2,7 @@ import argparse
 import os
 
 import torch
+import torch.nn as nn
 import torch.nn.parallel
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
@@ -10,7 +11,6 @@ from torch.utils.data import DataLoader
 import time
 from torch.utils.tensorboard import SummaryWriter
 from models.MVSNet import MVSNet, mvsnet_loss
-#from models.MVSNet1 import MVSNet1, mvsnet_loss
 from utils import *
 import datetime
 

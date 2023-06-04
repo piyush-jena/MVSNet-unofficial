@@ -60,7 +60,7 @@ class MVSNet(nn.Module):
 
         self.feat_ext = FeatureExtractionNet()
         self.cost_vol_reg = CostVolumeRegularizationNet()
-
+        
         if self.refine:
             self.dep_map_refine = DepthMapRefineNet()
 
@@ -69,7 +69,6 @@ class MVSNet(nn.Module):
         proj_matrices = torch.unbind(proj_matrices, 1)
         
         assert len(imgs) == len(proj_matrices), "Different number of images and projection matrices"
-        img_height, img_width = imgs[0].shape[2], imgs[0].shape[3]
         num_depth = depth_values.shape[1]
         num_views = len(imgs)
 
@@ -81,16 +80,20 @@ class MVSNet(nn.Module):
 
         # step 2. differentiable homograph, build cost volume
         ref_volume = ref_feature.unsqueeze(2).repeat(1, 1, num_depth, 1, 1)
+        #volume_sum = ref_volume
+        #volume_sq_sum = ref_volume.pow_(2)
         volume_sum = ref_volume
-        volume_sq_sum = ref_volume.pow_(2)
+        volume_sq_sum = ref_volume ** 2
 
         del ref_volume
         
         for src_fea, src_proj in zip(src_features, src_projs):
             # warpped features
             warped_volume = homo_warping(src_fea, src_proj, ref_proj, depth_values)
-            volume_sum += warped_volume
-            volume_sq_sum += warped_volume.pow_(2)
+            #volume_sum += warped_volume
+            #volume_sq_sum += warped_volume.pow_(2)
+            volume_sum = volume_sum + warped_volume
+            volume_sq_sum = volume_sq_sum + warped_volume ** 2
             del warped_volume
 
         # aggregate multiple feature volumes by variance
