@@ -40,7 +40,7 @@ class CostVolumeRegularizationNet(nn.Module):
             nn.BatchNorm3d(8),
             nn.ReLU(inplace = True))
 
-        self.conv10 = nn.Conv3d(8, 1, 3, 1, 1, bias=False)
+        self.conv10 = nn.Conv3d(8, 1, 3, 1, 1)
 
     def forward(self, x):
         x = self.conv0(x)
