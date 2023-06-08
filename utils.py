@@ -347,8 +347,8 @@ def save_checkpoint(model, optimizer, epoch, logdir):
 
     ''' Create a directory to save the checkpoints'''
 
-    if not os.path.isdir('checkpoint'):
-        os.mkdir('checkpoint')
+    if not os.path.isdir(logdir):
+        os.mkdir(logdir)
     torch.save(state, "{}/model_{:0>6}.ckpt".format(logdir, epoch))
 
 
