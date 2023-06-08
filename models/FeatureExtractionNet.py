@@ -27,7 +27,7 @@ class FeatureExtractionNet(nn.Module):
         self.conv6 = nn.Conv2d(32, 32, 3, 1, 1, bias=False)
         self.bn6 = nn.BatchNorm2d(32)
 
-        self.conv7 = nn.Conv2d(32, 32, 3, 1, 1, bias=False)
+        self.conv7 = nn.Conv2d(32, 32, 3, 1, 1)
 
     def forward(self, x):
         x = self.conv0(x)
