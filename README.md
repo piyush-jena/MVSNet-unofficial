@@ -15,7 +15,7 @@ This is an unofficial Pytorch implementation of MVSNet intended to be an entrant
 
 * Download the preprocessed [DTU training data](https://drive.google.com/file/d/1eDjh-_bxKKnEuz5h-HXS7EDJn59clx6V/view) (Fixed training cameras, from [Original MVSNet](https://github.com/YoYo000/MVSNet)), and upzip it as the ``MVS_TRANING`` folder
 * create a logdir called ``checkpoints``
-* Train MVSNet: ``python train.py --batch_size 4 --numdepth 64``
+* Train MVSNet: ``python train.py --batch_size 1 --numdepth 128``
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
