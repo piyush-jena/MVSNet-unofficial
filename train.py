@@ -43,7 +43,7 @@ parser.add_argument('--summary_freq', type=int, default=100, help='print and sum
 parser.add_argument('--seed', type=int, default=1, metavar='S', help='random seed')
 
 args = parser.parse_args()
-
+print_args(args)
 
 # parse arguments and check
 if args.resume:
