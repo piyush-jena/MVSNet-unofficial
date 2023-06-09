@@ -6,7 +6,7 @@ This is an unofficial Pytorch implementation of MVSNet intended to be an entrant
 
 ## How to Use
 
-### Environment
+### Environment ('should' work in older versions as well)
 * python 3.10 (Anaconda)
 * pytorch 2.0.1
 * CUDA 11.7
